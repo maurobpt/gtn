@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+ <meta charset="UTF-8"> 
+<head>
+    <title>test ajax rss</title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript">
+        // YQL: https://developer.yahoo.com/yql/
+// YQL Console: https://developer.yahoo.com/yql/console/
+
+function parseFeed(url, container) {
+    // yql query
+    var query = 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from feednormalizer where url="' + url + '"') + '&format=json';
+    
+    // send request
+    $.getJSON(query, function (data, status, errorThrown) {
+        // if successful... *
+        if (status === 'success') {
+            // log object data in console
+            console.log(data);
+            
+            // append feed link and title in container
+            $(container).append('<a href="' + url + '"><span class="oi" data-glyph="rss-alt"></span></a>');
+            $(container).append('<h1 class="feed">' + data.query.results.rss.channel.title + '</h1>');
+            
+            // for each entry... *
+            $.each(data.query.results.rss.channel.item, function (key, value) {
+
+                //alert(JSON.stringify(value));
+                // * create new date object and pass in entry date
+                var date = new Date(value.pubDate);
+                
+                // * create months array
+                var months = new Array(12);
+                months[0] = 'January';
+                months[1] = 'February';
+                months[2] = 'March';
+                months[3] = 'April';
+                months[4] = 'May';
+                months[5] = 'June';
+                months[6] = 'July';
+                months[7] = 'August';
+                months[8] = 'September';
+                months[9] = 'October';
+                months[10] = 'November';
+                months[11] = 'December';
+                
+                // * parse month, day and year
+                var month = date.getMonth();
+                var day = date.getDate();
+                var year = date.getFullYear();
+                //alert(value);
+                // * build content snippet
+                //var content = $(value.description).text().substring(0, 160);
+                /*if (value.description.length > content.length ) {
+                    content += ' ...';
+                }*/
+                
+                // * assign entry variables
+                var title = '<h3 class="title"><a href="' + value.link + '" target="_blank">' + value.title + '</a></h3>';
+                var time = '<p class="time">' + months[month] + ' ' + day + ', ' + year + '</p>';
+                var snippet = '<p class="snippet">' + value.description + '</p>';
+                var picture = '<img class="picture" height="350" src=""/>';
+                var entry = '<div class="entry">' + title + time + snippet + picture + '</div>';
+                
+                // * append entire entry in container
+                $(container).append(entry);
+            });
+            
+        // if there's an error... *
+        } else if (status === 'error' || status === 'parsererror') {
+            // * log error message in console
+            console.log(errorThrown);
+            
+            // * show error message
+            alert('Could not load RSS feed!');
+        }
+    });
+}
+
+$(document).ready(function () {
+    //World news
+    //parseFeed('http://feeds.bbci.co.uk/news/world/rss.xml', '#feeds'); // 29 // value.thumbnail.url
+    //parseFeed('http://rss.cnn.com/rss/cnn_topstories.xml', '#feeds'); // 33 // value.group.content[0].url
+    parseFeed('http://feeds.reuters.com/reuters/topNews.xml', '#feeds'); // 10  //nophoto
+    //parseFeed('https://www.yahoo.com/news/rss/index.xml', '#feeds'); //52 //value.content.url
+    //parseFeed('https://www.npr.org/rss/rss.php', '#feeds'); //15 //value.encoded (img with src)+description
+	//parseFeed('http://feeds.washingtonpost.com/rss/rss_blogpost', '#feeds'); //10 //image inside description
+});
+    </script>
+    <style type="text/css">
+        .entry>img{max-height: 350px!important }
+        .entry >div img{max-height: 350px!important }
+    </style>
+</head>
+<body>
+    <h1>test ajax rss</h1>
+    <br>
+<div id="container">
+    <div id="feeds"></div>
+</div>
+</body>
+</html>
